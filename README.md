@@ -15,18 +15,18 @@ A cute, interactive, and intelligent virtual desktop companion powered by local 
 
 ```mermaid
 graph LR
-    User[User / Browser] <-->|WebSocket/HTTP| API[FastAPI Backend]
+    User["User / Browser"] <-->|WebSocket/HTTP| API["FastAPI Backend"]
     
     subgraph "Backend Services"
-        API <-->|Orchestration| Logic[LangChain Logic]
-        Logic <-->|Inference| LLM[Ollama (Local LLM)]
-        Logic <-->|Research| RAG[RAG Pipeline]
-        API -->|Synthesis| TTS[VOICEVOX Engine (Docker)]
+        API <-->|Orchestration| Logic["LangChain Logic"]
+        Logic <-->|Inference| LLM["Ollama (Local LLM)"]
+        Logic <-->|Research| RAG["RAG Pipeline"]
+        API -->|Synthesis| TTS["VOICEVOX Engine (Docker)"]
     end
     
     subgraph "Frontend"
-        API -->|Response + Audio| UI[Web UI]
-        UI -->|Animation Control| Live2D[Live2D Cubism SDK]
+        API -->|Response + Audio| UI["Web UI"]
+        UI -->|Animation Control| Live2D["Live2D Cubism SDK"]
     end
 ```
 
