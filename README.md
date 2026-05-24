@@ -92,13 +92,15 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4\. Configuration (Optional)
+### 4. Configuration
 
-Check `config.py` to customize settings such as:
+The application features a user-friendly configuration interface. Once the server is running, you don't need to mess with `.env` files. Simply click the **Settings (⚙️)** icon in the top right corner of the Web UI to configure:
 
-  * `CHAT_MODEL`: The Ollama model to use.
-  * `VOICEVOX_URL`: URL of the TTS engine (default: `http://localhost:50021`).
-  * `TAVILY_API_KEY`: Required if you want to use the online research feature.
+* **Tavily API Key**: Enter your key here to enable the RAG-based online research feature.
+* **LLM Selection**: Dynamically choose your preferred local models (e.g., `ministral-3:3b`, `gemma3`) for both the Chatbot and the Research Assistant.
+* **Appearance**: Customize the UI theme (Dark/Light) and chat font size.
+
+*(Note: Advanced system parameters, such as the `VOICEVOX_URL` or memory limits, can still be tweaked manually in `config.py` if needed.)*
 
 ## ▶️ Usage
 
