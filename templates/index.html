@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tsukuyomi Chat</title>
+  <link rel="stylesheet" href="/static/research_style.css">
+  <link rel="stylesheet" href="/static/all.min.css">
+</head>
+
+<body>
+  <div id="audio-permission-overlay"
+    style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8)">
+    <div style="text-align:center;color:#fff">
+      <h2>(・ω・) 歡迎來到月讀醬的聊天室 (・ω・)</h2>
+      <p>按下<i class="fa-regular fa-clipboard-check"></i> 我了解並開始聊天，即表示貴用戶同意接受使用條款。</br>若貴用戶不接受使用條款，請不要使用。</p>
+      <button id="startChatBtn"><i class="fa-regular fa-clipboard-check"></i> 我了解並開始聊天</button>
+      <button id="showTermsBtn"><i class="fa-regular fa-list"></i> 查看使用條款</button>
+    </div>
+  </div>
+
+  <!-- 頂部導覽列 -->
+  <div class="topnav">
+    <div class="nav-left">
+      <img src="/static/img/avatar_icon.png" alt="月讀醬" class="nav-logo">
+      <span class="nav-title">Tsukuyomi Chat</span>
+    </div>
+    <div class="nav-center">
+      <a href="#" id="nav-chat" class="active"><i class="fa-regular fa-comment"></i> Chat</a>
+      <a href="#" id="nav-research"><i class="fa-solid fa-magnifying-glass"></i> Research</a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn" title="設定" type="button" id="settingsBtn"><i class="fas fa-cog"></i></button>
+      <button id="aboutBtn" class="icon-btn" title="關於" type="button"><i class="fas fa-info-circle"></i></button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 側邊欄 -->
+    <aside class="sidebar">
+      <div class="sidebar-tabs">
+        <button type="button" class="tab-btn active" data-tab="chat">聊天室</button>
+        <button type="button" class="tab-btn" data-tab="file">Live2D&記憶&語音</button>
+        <button type="button" class="tab-btn" data-tab="research-history"><i class="fas fa-history"></i> 研究紀錄</button>
+      </div>
+
+      <!-- 聊天室側邊欄 -->
+      <div id="sidebar-chat" class="sidebar-content">
+        <div class="sidebar-header-with-btn">
+          <div class="sidebar-header">歷史聊天室</div>
+          <button type="button" class="new-chat-btn" title="新增聊天室">
+            <i class="fa fa-plus"></i>
+          </button>
+        </div>
+        <ul class="chat-history">
+          <li class="chat-item active">
+            <i class="fa fa-message"></i>
+            <span class="chat-title">今晚讀書計畫</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Live2D & 記憶側邊欄 -->
+      <div id="sidebar-file" class="sidebar-content" style="display:none;">
+        <div class="sidebar-header">Live2D 動作</div>
+        <ul id="controls" style="margin:0; padding:0; list-style:none;">
+          <li class="control-item" data-motion="Idle">
+            <i class="fa fa-hand-paper"></i> 待機
+          </li>
+          <li class="control-item" data-motion="Tap">
+            <i class="fa fa-hand-pointer"></i> 輕點
+          </li>
+          <li class="control-item" data-motion="Flick">
+            <i class="fa fa-smile"></i> 微笑
+          </li>
+          <li class="control-item" data-motion="FlickDown">
+            <i class="fa fa-meh"></i> 害羞
+          </li>
+          <li class="control-item" data-motion="FlickUp">
+            <i class="fa fa-laugh"></i> 開心
+          </li>
+          <li class="control-item" data-motion="Tap@Body">
+            <i class="fa fa-angry"></i> 生氣
+          </li>
+          <li class="control-item" data-motion="Flick@Body">
+            <i class="fa fa-sad-tear"></i> 悲傷
+          </li>
+        </ul>
+        <hr style="border-color:#6e3be0bb; margin: 16px 10px;" />
+        <div class="sidebar-header" style="color:#f8b0f0;padding-top:0">記憶與語音管理</div>
+        <ul style="margin:0; padding:0; list-style:none;">
+          <li class="control-item" id="replayAudio">
+            <i class="fa fa-volume-up"></i> 重播語音
+          </li>
+          <li class="control-item" id="clearSession">
+            <i class="fa fa-trash"></i> 清除對話記憶
+          </li>
+          <li class="control-item" id="clearAllMemory">
+            <i class="fa fa-broom"></i> 清除所有記憶
+          </li>
+        </ul>
+      </div>
+
+      <!-- 研究紀錄側邊欄 -->
+      <div id="sidebar-research-history" class="sidebar-content" style="display:none;">
+        <div class="sidebar-header-with-btn">
+          <div class="sidebar-header">研究紀錄</div>
+          <button class="icon-btn" id="clearHistoryBtn" title="清除全部紀錄">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+        <div class="sidebar-content">
+          <ul class="research-history-list" id="researchHistoryList"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Live2D 面板 -->
+    <div class="live2d-panel">
+      <div id="live2d-area">
+        <div id="particles-js"></div>
+      </div>
+      <div id="intimacy-display">
+        <div id="intimacy-text">親密度: 0 (陌生)</div>
+        <div id="intimacy-bar">
+          <div id="intimacy-bar-fill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 聊天主區 -->
+    <main class="chat-main">
+      <button id="toggleExpandBtn" class="edge-toggle-btn" title="收合Live2D">
+        <i class="fa fa-chevron-left"></i>
+      </button>
+
+      <!-- 1. 聊天視圖 -->
+      <div id="chat-view" class="view-section active"
+        style="display: flex; flex-direction: column; height: 100%; width: 100%;">
+        <div id="chat-box">
+          <div id="chat-messages">
+            <div class="chat-message bot">哈囉，有什麼可以幫你的？</div>
+            <div id="typing-indicator" class="chat-message bot typing-indicator hidden">
+              <div class="wave-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+
+          <div id="chat-input-area" class="chat-input-bar">
+            <textarea id="chatInput" placeholder="詢問初音未來及V家的問題或單純的聊聊天吧(•ω•)/" rows="1"></textarea>
+            <div class="input-toolbar">
+              <button id="toggleFilePanel" class="icon-btn" title="附加檔案" type="button">
+                <i class="fa fa-paperclip"></i>
+              </button>
+              <button id="voiceInputBtn" class="icon-btn" title="語音輸入" type="button">
+                <i class="fa fa-microphone"></i>
+              </button>
+              <button id="sendBtn" class="icon-btn" title="送出" type="button">
+                <i class="fa fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 研究視圖 -->
+      <div id="research-view" class="view-section" style="display: none;">
+        <div class="research-container">
+          <div class="research-header">
+            <h2>✨ 月讀醬的研究室 ✨ </h2>
+            <p>讓你的專屬AI研究小幫手 月讀醬 和你一起做研究吧 (*ˊᗜˋ*)</p>
+          </div>
+
+          <!-- 搜索建議與自動完成 -->
+          <div class="search-box-wrapper">
+            <div class="search-box">
+              <input type="text" id="researchInput" placeholder="輸入任何主題，月讀醬來幫你研究並生成報告" autocomplete="off"
+                aria-label="研究主題輸入框">
+              <button class="action-btn" id="startResearchBtn">
+                <i class="fas fa-search"></i> 開始研究
+              </button>
+            </div>
+
+            <!-- 自動完成下拉選單 -->
+            <ul id="searchSuggestions" class="search-suggestions hidden"></ul>
+          </div>
+
+          <!-- 進階選項手風琴式設計 -->
+          <div class="research-options-accordion">
+            <button class="accordion-toggle" id="advancedOptionsToggle">
+              <i class="fas fa-sliders-h"></i> 進階選項
+              <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+
+            <div class="accordion-content collapsed" id="advancedOptionsContent">
+              <div class="research-options">
+                <div class="option-group">
+                  <label for="searchDepth">搜索深度</label>
+                  <select id="searchDepth">
+                    <option value="standard" selected>標準 (5-10 分鐘)</option>
+                    <option value="deep">深度 (10-15 分鐘)</option>
+                  </select>
+                </div>
+
+                <div class="option-group">
+                  <label>生成格式</label>
+                  <div class="file-toggles">
+                    <label class="toggle-checkbox">
+                      <input type="checkbox" id="generatePDF" checked>
+                      <span>PDF 報告</span>
+                    </label>
+                    <label class="toggle-checkbox">
+                      <input type="checkbox" id="generateMarkdown">
+                      <span>Markdown</span>
+                    </label>
+                    <label class="toggle-checkbox">
+                      <input type="checkbox" id="generateJSON">
+                      <span>JSON 資料</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 結果視圖切換 -->
+          <div class="research-results">
+            <div class="results-header">
+              <h3>研究結果</h3>
+              <div class="view-controls">
+                <button class="view-btn active" data-view="detailed" title="詳細檢視">
+                  <i class="fas fa-list"></i>
+                </button>
+                <button class="view-btn" data-view="cards" title="卡片檢視">
+                  <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" data-view="timeline" title="時間軸檢視">
+                  <i class="fas fa-stream"></i>
+                </button>
+                <button class="export-btn" id="exportResultsBtn">
+                  <i class="fas fa-download"></i> 匯出
+                </button>
+              </div>
+            </div>
+
+            <!-- 漸進式載入指示器 -->
+            <div id="progressIndicator" class="progress-indicator hidden">
+              <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+              </div>
+              <div class="progress-text" id="progressText">正在初始化研究...</div>
+              <div class="progress-details" id="progressDetails"></div>
+            </div>
+
+            <div id="resultsContainer" class="results-container view-detailed">
+              <!-- 空白狀態引導 -->
+              <div class="empty-state" id="emptyState">
+                <i class="fas fa-search"></i>
+                <h3> 跟月讀醬一起開始研究之旅吧(ﾉ>ω<)ﾉ </h3>
+                    <p>輸入任何主題，月讀醬來幫你研究並生成報告</p>
+
+                    <div class="example-queries">
+                      <p class="example-label">試試這些範例吧：</p>
+                      <button class="example-query-btn" data-query="大型語言模型最新發展">
+                        <i class="fas fa-lightbulb"></i> 大型語言模型最新發展
+                      </button>
+                      <button class="example-query-btn" data-query="台灣半導體產業趨勢">
+                        <i class="fas fa-microchip"></i> 台灣半導體產業趨勢
+                      </button>
+                      <button class="example-query-btn" data-query="永續能源技術創新">
+                        <i class="fas fa-leaf"></i> 永續能源技術創新
+                      </button>
+                    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 設定視圖 -->
+      <div id="settings-view" class="view-section" style="display: none;">
+        <div class="settings-container">
+          <button class="back-to-chat-btn" id="backToChatBtn">
+            <i class="fa fa-arrow-left"></i> 返回
+          </button>
+
+          <div class="settings-header">
+            <h2><i class="fa fa-cog"></i> 設定</h2>
+            <p>個人化你專屬的月讀醬</p>
+          </div>
+
+          <div class="settings-content">
+            <!-- 外觀設定 -->
+            <div class="settings-section">
+              <h3 class="section-title">
+                <i class="fa fa-palette"></i>
+                外觀設定
+              </h3>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <label>主題配色</label>
+                  <span class="setting-description">選擇你喜歡的主題配色</span>
+                </div>
+                <select id="theme-select" class="setting-select">
+                  <option value="dark">暗色主題</option>
+                  <option value="light">亮色主題</option>
+                </select>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <label>字體大小</label>
+                  <span class="setting-description">調整聊天訊息的字體大小</span>
+                </div>
+                <div class="slider-container">
+                  <input type="range" id="font-size-slider" min="12" max="20" value="16" step="1">
+                  <span class="slider-value" id="font-size-value">16px</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 研究設定 -->
+            <div class="settings-section">
+              <h3 class="section-title">
+                <i class="fa fa-flask"></i>
+                研究設定
+              </h3>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <label>Tavily API Key</label>
+                  <span class="setting-description">用於網路搜尋的 API 金鑰</span>
+                </div>
+                <div class="api-input-wrapper">
+                  <input type="password" id="tavily-api-input" class="api-input" placeholder="輸入你的 Tavily API Key">
+                  <button type="button" class="toggle-visibility-btn" id="toggle-tavily">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <label>Smart LLM</label>
+                  <span class="setting-description">用於複雜推理的大型語言模型</span>
+                </div>
+                <input type="text" id="smart-llm-input" class="text-input" placeholder="例如：ministral-3">
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <label>Small LLM</label>
+                  <span class="setting-description">用於快速處理的輕量級模型</span>
+                </div>
+                <input type="text" id="small-llm-input" class="text-input" placeholder="例如：gemma3:4B">
+              </div>
+
+              <div class="settings-actions">
+                <button class="primary-btn" id="save-settings-btn">
+                  <i class="fa fa-save"></i> 儲存設定
+                </button>
+                <button class="secondary-btn" id="test-api-btn">
+                  <i class="fa fa-vial"></i> 測試 API
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- 檔案面板 -->
+    <aside id="filePanel" class="file-panel collapsed">
+      <div class="file-header-with-btn">
+        <div class="file-header">檔案管理</div>
+        <div class="file-controls">
+          <label for="fileUpload" class="file-upload-btn" title="上傳檔案">
+            <i class="fa fa-upload"></i>
+          </label>
+          <button type="button" class="close-panel-btn" title="收合">
+            <i class="fa fa-times"></i>
+          </button>
+          <input type="file" id="fileUpload" style="display:none" multiple accept=".txt,.pdf,.doc,.docx">
+        </div>
+      </div>
+      <ul class="file-list"></ul>
+    </aside>
+  </div>
+
+  <!-- 使用條款 Modal -->
+  <div id="termsModal"
+    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; color: white; padding: 2em; overflow-y: auto; backdrop-filter: blur(5px);">
+    <div
+      style="max-width: 900px; margin: auto; background: rgba(24, 24, 28, 0.7); padding: 2.5em; border-radius: 16px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(165, 138, 255, 0.2);">
+
+      <!-- 關閉按鈕 -->
+      <button id="closeTermsBtn"
+        style="position: absolute; top: 1em; right: 1em; background: linear-gradient(135deg, #f66, #d44); border: none; border-radius: 50%; width: 2.5em; height: 2.5em; font-size: 1.2em; font-weight: bold; color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 102, 102, 0.4); transition: all 0.3s ease;"
+        onmouseover="this.style.transform='scale(1.2)'"
+        onmouseout="this.style.transform='scale(1) rotate(0deg)'">✕</button>
+
+      <!-- 標題 -->
+      <div
+        style="text-align: center; margin-bottom: 2em; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 1em;">
+        <h2 style="font-size: 2em; margin: 0; color: #a58aff; font-weight: bold;">
+          使用條款 / Terms of Use
+        </h2>
+        <p style="margin: 0.5em 0 0; color: #aaa; font-size: 0.9em;">Version 2.0 | 最後更新：2025年12月6日</p>
+      </div>
+
+      <!-- 引言 -->
+      <div
+        style="background: rgba(165, 138, 255, 0.1); padding: 1.5em; border-radius: 8px; border-left: 4px solid #a58aff; margin-bottom: 2em;">
+        <p style="margin: 0; line-height: 1.6;">
+          感謝您使用本專案（<strong>Live2D 聊天機器人 與 GPT-Researcher系統</strong>）。</br>在使用本專案前，請詳細閱讀並同意以下條款：
+        </p>
+      </div>
+
+      <!-- 可滾動內容區域 -->
+      <div style="max-height: 60vh; overflow-y: auto; padding-right: 1em;">
+
+        <!-- 1. 服務說明 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">1</span>
+            服務說明
+          </h3>
+          <p style="margin: 1em 0 0.5em; font-weight: bold; color: #ddd;">本專案提供兩項整合服務：</p>
+
+          <div style="background: rgba(108, 92, 231, 0.1); padding: 1em; border-radius: 8px; margin: 1em 0;">
+            <h4 style="color: #6c5ce7; margin: 0 0 0.5em;">1.1 基於 RAG 的研究報告生成系統</h4>
+            <ul style="margin: 0; padding-left: 1.5em; line-height: 1.8;">
+              <li>提供自動化研究報告生成服務，整合檢索增強生成（RAG）、大型語言模型（LLM）、網路搜尋功能及結構化內容生成。</li>
+              <li>根據網路來源資訊及使用者指定的主題生成研究報告。</li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(108, 92, 231, 0.1); padding: 1em; border-radius: 8px; margin: 1em 0;">
+            <h4 style="color: #6c5ce7; margin: 0 0 0.5em;">1.2 Live2D 互動式聊天機器人</h4>
+            <ul style="margin: 0; padding-left: 1.5em; line-height: 1.8;">
+              <li>提供 Live2D 聊天機器人服務，結合大型語言模型（LLM）、Live2D 動畫角色及文字轉語音（TTS）技術。</li>
+              <li>提供具有動畫虛擬角色的互動式對話體驗。</li>
+            </ul>
+          </div>
+
+          <div
+            style="background: rgba(255, 193, 7, 0.15); padding: 1em; border-radius: 8px; border-left: 4px solid #ffc107; margin-top: 1em;">
+            <strong style="color: #ffc107;">⚠️ 重要提示：</strong> 兩項服務皆<strong>僅供學術研究與個人學習使用</strong>，未經許可，禁止任何形式的商業用途。
+          </div>
+        </div>
+
+        <!-- 2. 資料收集與隱私 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">2</span>
+            資料收集與隱私
+          </h3>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li>本專案<strong>不會主動收集敏感的個人資訊</strong>。</li>
+            <li>對話內容與搜尋查詢僅用於增強互動體驗，不會用於其他目的。</li>
+            <li>除必要的 API 呼叫（Tavily Search、Ollama LLM）外，所有資料處理皆在本地執行。</li>
+            <li>生成的報告與對話記錄儲存於使用者的本地系統。使用者應妥善管理並保護這些檔案。</li>
+            <li style="color: #ff9999;">使用者需對其輸入的內容負責；開發者不對任何資料洩漏或濫用承擔責任。</li>
+          </ul>
+        </div>
+
+        <!-- 3. 大語言模型使用政策 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">3</span>
+            大型語言模型（LLM）使用政策
+          </h3>
+          <p style="margin: 1em 0 0.5em;">本專案支援多種開源 LLM 模型：</p>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li><strong>Gemma：</strong>由 <a href="https://ai.google.dev/gemma/terms" target="_blank"
+                style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">Gemma 使用條款</a> 提供並管理。
+            </li>
+            <li><strong>Mistral：</strong>受 <a href="https://mistral.ai/terms/" target="_blank"
+                style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">Mistral AI 服務條款</a>
+              約束。</li>
+          </ul>
+          <p style="margin: 1em 0; color: #ddd;">使用者需自行遵守各模型的使用條款與授權協議。</p>
+        </div>
+
+        <!-- 4. Live2D 模型版權 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">4</span>
+            Live2D 模型版權
+          </h3>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li>本專案使用 Live2D 株式會社提供的範例模型<strong>「桃瀨日和（Hiyori Momose）」</strong>，僅供展示與互動使用。</li>
+            <li>該模型受 <a href="https://www.live2d.com/eula/live2d-sample-model-terms_zh-tw.html" target="_blank"
+                style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">Live2D 範例模型使用條款</a>
+              約束。</li>
+            <li style="color: #ff9999;"><strong>嚴格禁止</strong> Live2D 模型的商業使用或未經授權的散布。</li>
+            <li>使用者在任何衍生作品中必須遵守 Live2D 株式會社的授權條款。</li>
+          </ul>
+        </div>
+
+        <!-- 5. VOICEVOX 語音合成技術 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">5</span>
+            VOICEVOX 語音合成技術
+          </h3>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li>本專案使用開源文字轉語音引擎 <strong>VOICEVOX</strong> 及 <strong>Catshibi（猫使ビィ）</strong>語音庫。</li>
+            <li>根據 <a href="https://voicevox.hiroshiba.jp/term/" target="_blank"
+                style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">VOICEVOX
+                使用條款</a>，允許商業與非商業使用該軟體。</li>
+            <li>禁止未經授權的再散布、逆向工程或有損創作者利益的行為。</li>
+            <li>使用者在衍生作品中使用 VOICEVOX 時必須提供適當的署名。</li>
+          </ul>
+        </div>
+
+        <!-- 6. 網路搜尋 API 使用 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">6</span>
+            網路搜尋 API 使用
+          </h3>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li>研究報告生成系統使用 <strong>Tavily Search API</strong> 檢索跨區域及多語言的網路內容。</li>
+            <li>使用受 <a href="https://tavily.com/terms" target="_blank"
+                style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">Tavily API 服務條款</a>
+              約束。</li>
+            <li>使用者必須確保其 API 使用符合 Tavily 的速率限制與可接受使用政策。</li>
+            <li>開發者不對 API 服務中斷或 Tavily 條款變更負責。</li>
+          </ul>
+        </div>
+
+        <!-- 7. 內容準確性與責任 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">7</span>
+            內容準確性與責任
+          </h3>
+          <div
+            style="background: rgba(255, 82, 82, 0.15); padding: 1.5em; border-radius: 8px; border-left: 4px solid #ff5252;">
+            <ul style="line-height: 1.8; padding-left: 1.5em; margin: 0;">
+              <li>生成的研究報告基於查詢執行時從網路檢索的資訊。</li>
+              <li><strong style="color: #ff9999;">開發者不保證生成內容的準確性、完整性或時效性。</strong></li>
+              <li>使用者應在使用前驗證生成報告中的所有事實陳述與引用。</li>
+              <li>系統可能產生 LLM 技術固有的事實錯誤、過時資訊或「幻覺」。</li>
+              <li>聊天機器人的回應由 AI 生成，可能不完全準確或適當。</li>
+              <li><strong style="color: #ff5252;">開發者不對因依賴生成內容或聊天機器人回應而造成的任何損害承擔責任。</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 8. 使用者行為規範 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">8</span>
+            使用者行為規範
+          </h3>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li>禁止任何形式的濫用、攻擊或服務中斷行為。</li>
+            <li>使用者不得使用本系統生成有害、非法或誤導性內容。</li>
+            <li>使用者不得以過量請求對 Tavily API 或 Ollama 服務造成負擔。</li>
+            <li>使用者不得將 Live2D 角色用於商業目的或未經授權進行散布。</li>
+            <li style="color: #ff9999;"><strong>違反者將被限制或終止存取權限。</strong></li>
+          </ul>
+        </div>
+
+        <!-- 9. 免責聲明與責任限制 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">9</span>
+            免責聲明與責任限制
+          </h3>
+          <div
+            style="background: rgba(255, 193, 7, 0.15); padding: 1.5em; border-radius: 8px; border-left: 4px solid #ffc107;">
+            <ul style="line-height: 1.8; padding-left: 1.5em; margin: 0;">
+              <li>本軟體按<strong>「現況」</strong>提供，不提供任何明示或暗示的保證。</li>
+              <li>開發者不提供任何保證，包括適銷性、特定用途適用性及不侵權保證。</li>
+              <li>不保證服務的可用性、可靠性或效能。</li>
+              <li style="color: #ff5252;"><strong>開發者不對因使用或無法使用本系統而產生的任何直接、間接、附帶、特殊或衍生性損害承擔責任。</strong></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 10. 條約修訂 -->
+        <div style="margin-bottom: 2em;">
+          <h3
+            style="color: #a58aff; border-bottom: 2px solid rgba(165, 138, 255, 0.3); padding-bottom: 0.5em; display: flex; align-items: center;">
+            <span
+              style="background: #a58aff; color: white; width: 1.8em; height: 1.8em; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 0.5em; font-size: 0.9em;">10</span>
+            條約修訂
+          </h3>
+          <ul style="line-height: 1.8; padding-left: 1.5em;">
+            <li>作者保留隨時修改本條款的權利。</li>
+            <li>系統或條款的重大更新將記錄於專案儲存庫中。</li>
+            <li>修改後繼續使用本系統即表示接受更新後的條款。</li>
+            <li><strong>請定期檢查以獲取最新資訊。</strong></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- 底部聯絡資訊 -->
+      <div
+        style="margin-top: 2em; padding-top: 1.5em; border-top: 2px solid rgba(165, 138, 255, 0.3); text-align: center;">
+        <p style="color: #aaa; line-height: 1.8; margin: 0;">
+          如有其他疑問，請透過以下方式聯絡專案維護者：<br>
+          <a href="https://github.com/yourusername/yourproject/issues" target="_blank"
+            style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">GitHub Issues</a> |
+          <a href="mailto:your.email@example.com"
+            style="color: #a58aff; text-decoration: none; border-bottom: 1px dotted #a58aff;">Email</a>
+        </p>
+        <p style="color: #666; font-size: 0.85em; margin: 1em 0 0;">Version 2.0 | Last Updated: December 6, 2025</p>
+      </div>
+
+    </div>
+  </div>
+
+  <style>
+    /* 滾動條樣式 */
+    #termsModal div::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #termsModal div::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+    #termsModal div::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #a58aff, #6c5ce7);
+      border-radius: 10px;
+    }
+
+    #termsModal div::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #6c5ce7, #a58aff);
+    }
+
+    /* 連結懸停效果 */
+    #termsModal a:hover {
+      color: #c5b3ff !important;
+      border-bottom-color: #c5b3ff !important;
+    }
+  </style>
+
+
+  <!-- 外部腳本 -->
+  <script src="/static/libs/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/cubism4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
+  <script src="/static/research_script.js"></script>
+
+</body>
+
+</html>
