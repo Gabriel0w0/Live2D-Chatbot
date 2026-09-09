@@ -78,7 +78,7 @@ Clone the repository and install dependencies. It is recommended to use a virtua
 
 ```bash
 # Clone the repo
-git clone https://github.com/your-username/live2d-chatbot.git
+git clone https://github.com/Gabriel0w0/Live2D-Chatbot.git
 cd live2d-chatbot
 
 # Create virtual environment (Optional but recommended)
