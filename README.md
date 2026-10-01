@@ -7,6 +7,7 @@ A cute, interactive, and intelligent virtual desktop companion powered by local 
   * **💬 Interactive Personality**: Engages in conversation with emotional awareness and expressive Live2D animations.
   * **🧠 Local Intelligence**: Powered by **Ollama** & **LangChain**, keeping your data private and offline.
   * **🗣️ Natural Voice**: Uses **VOICEVOX** for high-quality, character-specific Japanese text-to-speech (TTS).
+  * **🎙️ Voice Input**: Converts Traditional Chinese speech to text in the chat input using the browser's speech recognition API. Requires a supported browser and microphone permission.
   * **📚 RAG Capabilities**: Capable of conducting research and generating reports based on web searches (Retrieval-Augmented Generation).
   * **🎀 Modern UI**: A clean, floating web interface with animated backgrounds and glassmorphism design.
   * **⚡ Fully Offline**: Once set up, the system runs entirely on your local machine without external API dependencies.

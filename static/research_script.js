@@ -251,6 +251,9 @@ function escapeHtml(text) {
       this.chatMessages = document.getElementById('chat-messages');
       this.chatInput = document.getElementById('chatInput');
       this.sendBtn = document.getElementById('sendBtn');
+      this.voiceInputBtn = document.getElementById('voiceInputBtn');
+      this.recognition = null;
+      this.voiceInputBaseValue = '';
       this.newChatBtn = document.querySelector('.new-chat-btn');
       this.typingIndicator = document.getElementById('typing-indicator');
       this.initEventListeners();
@@ -278,6 +281,7 @@ function escapeHtml(text) {
 
     initEventListeners() {
       this.sendBtn.addEventListener('click', () => this.sendMessage());
+      this.voiceInputBtn?.addEventListener('click', () => this.toggleVoiceInput());
       this.newChatBtn.addEventListener('click', () => this.createNewRoom());
       this.chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -289,6 +293,99 @@ function escapeHtml(text) {
         e.target.style.height = 'auto';
         e.target.style.height = (e.target.scrollHeight) + 'px';
       });
+    }
+
+    toggleVoiceInput() {
+      if (this.recognition) {
+        this.stopVoiceInput();
+        return;
+      }
+
+      if (!window.isSecureContext) {
+        showToast('語音輸入需要在 HTTPS 或 localhost 環境中使用。', 'warning');
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showToast('目前的瀏覽器不支援語音辨識，請改用支援此功能的瀏覽器。', 'warning');
+        return;
+      }
+
+      let recognition;
+      try {
+        recognition = new SpeechRecognition();
+      } catch (error) {
+        console.error('建立語音辨識失敗：', error);
+        showToast('無法啟動語音輸入，請稍後再試。', 'error');
+        return;
+      }
+
+      this.recognition = recognition;
+      this.voiceInputBaseValue = this.chatInput.value;
+      recognition.lang = 'zh-TW';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        this.voiceInputBtn?.classList.add('is-recording');
+        this.voiceInputBtn?.setAttribute('aria-pressed', 'true');
+        this.voiceInputBtn?.setAttribute('aria-label', '停止語音輸入');
+        this.voiceInputBtn?.setAttribute('title', '停止語音輸入');
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let index = 0; index < event.results.length; index += 1) {
+          transcript += event.results[index][0].transcript;
+        }
+
+        const separator = this.voiceInputBaseValue && !/\s$/.test(this.voiceInputBaseValue) ? ' ' : '';
+        this.chatInput.value = `${this.voiceInputBaseValue}${separator}${transcript}`;
+        this.chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+
+      recognition.onerror = (event) => {
+        const messages = {
+          'not-allowed': '麥克風權限遭拒，請在瀏覽器設定中允許使用麥克風。',
+          'service-not-allowed': '瀏覽器不允許使用語音辨識服務。',
+          'audio-capture': '找不到可用的麥克風，請確認裝置已連接。',
+          'no-speech': '沒有偵測到語音，請再試一次。',
+          'network': '語音辨識服務連線失敗，請檢查網路後重試。'
+        };
+
+        if (event.error !== 'aborted') {
+          showToast(messages[event.error] || '語音辨識發生錯誤，請稍後再試。', 'error');
+        }
+      };
+
+      recognition.onend = () => {
+        if (this.recognition !== recognition) return;
+        this.recognition = null;
+        this.voiceInputBtn?.classList.remove('is-recording');
+        this.voiceInputBtn?.setAttribute('aria-pressed', 'false');
+        this.voiceInputBtn?.setAttribute('aria-label', '語音輸入');
+        this.voiceInputBtn?.setAttribute('title', '語音輸入');
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        this.recognition = null;
+        console.error('啟動語音辨識失敗：', error);
+        showToast('無法啟動語音輸入，請稍後再試。', 'error');
+      }
+    }
+
+    stopVoiceInput() {
+      if (!this.recognition) return;
+
+      try {
+        this.recognition.stop();
+      } catch (error) {
+        console.error('停止語音辨識失敗：', error);
+        showToast('無法停止語音輸入，請重新整理頁面後再試。', 'error');
+      }
     }
 
     renderSidebar() {
@@ -405,6 +502,10 @@ function escapeHtml(text) {
       if (!this.currentRoom || !this.chatInput.value.trim()) return;
 
       const userMessage = this.chatInput.value.trim();
+      if (this.recognition) {
+        this.recognition.onresult = null;
+        this.stopVoiceInput();
+      }
 
       if (!this.data[this.currentRoom]) {
         this.data[this.currentRoom] = { messages: [], pinned: false };
@@ -458,6 +559,7 @@ function escapeHtml(text) {
         this.sendBtn.disabled = true;
         this.sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
       }
+      if (this.voiceInputBtn) this.voiceInputBtn.disabled = true;
       document.querySelectorAll('.nav-center a').forEach(link => {
         link.classList.add('nav-busy');
       });
@@ -473,6 +575,7 @@ function escapeHtml(text) {
         this.sendBtn.disabled = false;
         this.sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
       }
+      if (this.voiceInputBtn) this.voiceInputBtn.disabled = false;
       document.querySelectorAll('.nav-center a').forEach(link => {
         link.classList.remove('nav-busy');
       });
@@ -1796,10 +1899,6 @@ ${content}
     document.getElementById('clearAllMemory')?.addEventListener('click', () => {
       chatManager.clearAllMemory();
     });
-    document.getElementById('voiceInputBtn')?.addEventListener('click', () => {
-      showToast('語音輸入功能還沒開發好 (´;ω;`)', 'warning');
-    });
-
     // Live2D 點擊互動
     const live2dArea = document.getElementById('live2d-area');
     if (live2dArea) {
