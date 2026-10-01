@@ -682,6 +682,18 @@ html {
   transform: translateY(-1.5px) scale(1.10);
 }
 
+.icon-btn.is-recording {
+  background: #d64568;
+  color: #fff;
+  animation: voice-input-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes voice-input-pulse {
+  50% {
+    box-shadow: 0 0 0 5px rgba(214, 69, 104, 0.2);
+  }
+}
+
 /* ========== 波浪式打字指示器 ========== */
 .typing-indicator {
   align-self: flex-start;
